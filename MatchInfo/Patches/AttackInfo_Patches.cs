@@ -17,14 +17,6 @@ namespace PunishInfo.MatchInfo.Patches;
 [HarmonyPatch]
 internal static class AttackInfo_Patches
 {
-    [HarmonyPatch(typeof(GameHudPlayerInfo), nameof(GameHudPlayerInfo.SetPlayer))]
-    [HarmonyPostfix]
-    private static void Init_AttackInfo(GameHudPlayerInfo __instance, ALDOKEMAOMB player)
-    {
-        new AttackInfo(__instance);
-        attackInfos[player.CJFLMDNNMIE].Init();
-    }
-
     [HarmonyPatch(typeof(World), nameof(World.FrameUpdate))]
     [HarmonyPostfix]
     private static void UpdateAttackInfo(ScreenGameHud __instance)
