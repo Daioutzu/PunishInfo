@@ -46,16 +46,5 @@ namespace PunishInfo
             Harmony.PatchAll();
             Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
-
-        internal void LoadedState()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (AttackInfo.attackInfos[i] == null)
-                    continue;
-
-                AttackInfo.attackInfos[i].LoadedState();
-            }
-        }
     }
 }

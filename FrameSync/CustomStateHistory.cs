@@ -34,7 +34,6 @@ internal class CustomStateHistory
         else
         {
             PunishInfo_Plugin.Instance.pluginData.Load(item.PluginData, false);
-            PunishInfo_Plugin.Instance.LoadedState();
             if (history.Count > FrameObject.lastIndex + 1)
             {
                 history.RemoveRange(FrameObject.lastIndex + 1, history.Count - (FrameObject.lastIndex + 1));

@@ -37,6 +37,5 @@ internal class World_Patches
         {
             plugin.pluginData.Load(plugin.pluginDataSave, false);
         }
-        plugin.LoadedState();
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Abilities;
 using GameplayEntities;
 using LLScreen;
-using PunishInfo.Setup;
 using Multiplayer;
+using PunishInfo.Setup;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +18,11 @@ internal class AttackInfo
     private const int HIT_TYPE_DURATION = 90;
     internal GameHudPlayerInfo GameHudPlayerInfo { get; private set; }
     private int playerIndex = -1;
-    private int hideTime = int.MaxValue;
+    private int prevHideTime = int.MaxValue;
     private int prevOnHitFrame = 0;
     private PlayerStatistics playerStatistics;
     private int prevHitCount;
-    private PunishType prevPunishType;
+    private PunishType prevPunishType = PunishType.NONE;
 
     internal static AttackInfo[] attackInfos = new AttackInfo[4];
     private GameObject attackInfoObjects;
@@ -71,6 +71,12 @@ internal class AttackInfo
         return facingDirection != side;
     }
 
+    //  when to activate text:
+    //      Opponent is doing an action/recovering from one and is hit
+    //  when to deactivate text:
+    //      Opponent has recoverd from the knockback
+    //      Rollbacked to a frame when they weren't hit
+
     internal void HitOtherPlayer(PlayerEntity victim, Side side)
     {
         StringBuilder sb = new StringBuilder();
@@ -84,23 +90,25 @@ internal class AttackInfo
         if (IsCounter(victim, victim.GetCurrentAbilityState()))
         {
             playerStatistics.punishType = PunishType.COUNTER;
+            prevHideTime = Sync.curFrame + HIT_TYPE_DURATION;
         }
         else if (IsPunish(victim, victim.GetCurrentAbilityState()))
         {
             playerStatistics.punishType = PunishType.PUNISH;
+            prevHideTime = Sync.curFrame + HIT_TYPE_DURATION;
         }
         else
         {
             playerStatistics.punishType = PunishType.NONE;
-            HideUINow();
             return;
         }
 
-        sb.AppendFormat(" | {0}!!", playerStatistics.punishType.ToString());
+        sb.AppendFormat(" | {0}", playerStatistics.punishType.ToString());
+
         if (playerStatistics.victimIndex == victim.playerIndex)
         {
             prevHitCount = playerStatistics.additionalHitCount++;
-            sb.AppendFormat(" | Combo: {0}!!", playerStatistics.additionalHitCount);
+            sb.AppendFormat(" | Combo: {0}", playerStatistics.additionalHitCount);
         }
         else
         {
@@ -114,29 +122,31 @@ internal class AttackInfo
 
     internal void UpdateUI()
     {
+        if (playerStatistics.punishType != prevPunishType)
+        {
+            ShowPunishText(playerStatistics.punishType);
+            prevPunishType = playerStatistics.punishType;
+        }
+
+        if (playerStatistics.additionalHitCount != prevHitCount)
+        {
+            ShowHitCount(playerStatistics.additionalHitCount);
+            prevHitCount = playerStatistics.additionalHitCount;
+            if (prevHitCount != 0)
+                ShowPunishText(playerStatistics.punishType);
+        }
+
         HideUI();
-        ShowPunishText();
-        ShowHitCount();
     }
 
-    internal void LoadedState()
-    {
-        UpdateUI();
-    }
-
-    private void ShowHitCount()
+    private void ShowHitCount(int count)
     {
         if (hitCountObj == null)
             return;
 
-        if (playerStatistics.additionalHitCount == prevHitCount)
-            return;
-
-        prevHitCount = playerStatistics.additionalHitCount;
-
-        if (playerStatistics.additionalHitCount != 0)
+        if (count != 0)
         {
-            imhitCount.sprite = PluginBundle.sprites[$"HitCount_{playerStatistics.additionalHitCount - 1}"];
+            imhitCount.sprite = PluginBundle.sprites[$"HitCount_{count - 1}"];
             hitCountObj.SetActive(true);
         }
         else
@@ -147,7 +157,7 @@ internal class AttackInfo
 
     private void HideUI()
     {
-        if (Sync.curFrame > hideTime)
+        if (Sync.curFrame > prevHideTime)
         {
             HideUINow();
         }
@@ -156,21 +166,14 @@ internal class AttackInfo
     private void HideUINow()
     {
         punishObj.SetActive(false);
-        playerStatistics.punishType = PunishType.NONE;
         counterObj.SetActive(false);
         hitCountObj.SetActive(false);
-        hideTime = int.MaxValue;
+        prevHideTime = int.MaxValue;
     }
 
-    private void ShowPunishText()
+    private void ShowPunishText(PunishType punishType)
     {
-        if (playerStatistics.punishType == prevPunishType)
-            return;
-
-        hideTime = Sync.curFrame + HIT_TYPE_DURATION;
-        prevPunishType = playerStatistics.punishType;
-
-        switch (playerStatistics.punishType)
+        switch (punishType)
         {
             case PunishType.COUNTER:
             counterObj.SetActive(true);
@@ -186,6 +189,7 @@ internal class AttackInfo
             default:
             counterObj.SetActive(false);
             punishObj.SetActive(false);
+            prevHideTime = int.MaxValue;
             return;
         }
     }
@@ -199,8 +203,9 @@ internal class AttackInfo
     {
         if (playerStatistics.victimIndex == playerIndex)
         {
-            playerStatistics.victimIndex = -1;
             playerStatistics.additionalHitCount = 0;
+            playerStatistics.victimIndex = -1;
+            playerStatistics.punishType = PunishType.NONE;
         }
     }
 
@@ -209,7 +214,9 @@ internal class AttackInfo
         if (currentAbilityState == null)
             return false;
 
-        for (int i = 0; currentAbilityState.hitboxes?.Count > 0; i++)
+        int count = currentAbilityState.hitboxes?.Count ?? 0;
+
+        for (int i = 0; i < count; i++)
         {
             string hitboxName = currentAbilityState.hitboxes[i];
             if (player.hitboxes[hitboxName].active)
@@ -256,10 +263,10 @@ internal class AttackInfo
 
     internal void Destroy()
     {
-        UnityEngine.Object.Destroy(attackInfoObjects.gameObject);
-        UnityEngine.Object.Destroy(counterObj);
-        UnityEngine.Object.Destroy(punishObj);
-        UnityEngine.Object.Destroy(hitCountObj);
+        GameObject.Destroy(attackInfoObjects);
+        GameObject.Destroy(counterObj);
+        GameObject.Destroy(punishObj);
+        GameObject.Destroy(hitCountObj);
         attackInfos[playerIndex] = null;
     }
 }

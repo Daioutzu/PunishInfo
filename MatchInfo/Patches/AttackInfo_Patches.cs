@@ -17,9 +17,9 @@ namespace PunishInfo.MatchInfo.Patches;
 [HarmonyPatch]
 internal static class AttackInfo_Patches
 {
-    [HarmonyPatch(typeof(World), nameof(World.FrameUpdate))]
+    [HarmonyPatch(typeof(GameHudPlayerInfo), nameof(GameHudPlayerInfo.UpdateInfo))]
     [HarmonyPostfix]
-    private static void UpdateAttackInfo(ScreenGameHud __instance)
+    private static void UpdateAttackInfo(GameHudPlayerInfo __instance)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -40,6 +40,7 @@ internal static class AttackInfo_Patches
                 continue;
 
             attackInfos[i].Destroy();
+            attackInfos[i] = null;
         }
     }
 
