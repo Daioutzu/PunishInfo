@@ -23,6 +23,7 @@ namespace PunishInfo.Setup
 
             LoadPrefabs(assetBundle);
             LoadSprites(assetBundle);
+            assetBundle.Unload(false);
             return true;
         }
 
@@ -45,6 +46,7 @@ namespace PunishInfo.Setup
                 return false;
 
             LoadPrefabs(assetBundle);
+            assetBundle.Unload(false);
             return true;
         }
 

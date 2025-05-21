@@ -71,12 +71,6 @@ internal class AttackInfo
         return facingDirection != side;
     }
 
-    //  when to activate text:
-    //      Opponent is doing an action/recovering from one and is hit
-    //  when to deactivate text:
-    //      Opponent has recoverd from the knockback
-    //      Rollbacked to a frame when they weren't hit
-
     internal void HitOtherPlayer(PlayerEntity victim, Side side)
     {
         StringBuilder sb = new StringBuilder();
