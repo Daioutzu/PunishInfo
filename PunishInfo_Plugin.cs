@@ -26,12 +26,6 @@ namespace PunishInfo
         internal MatchInfoData pluginDataSave;
         internal CustomStateHistory stateHistory;
 
-        #region Config
-
-        internal ConfigEntry<bool> showRankInGame;
-
-        #endregion Config
-
         private void Awake()
         {
             // Plugin startup logic
@@ -42,7 +36,6 @@ namespace PunishInfo
                 Logger.LogFatal($"Plugin {MyPluginInfo.PLUGIN_GUID} has failed to load Bundle!");
                 return;
             }
-            showRankInGame = Config.Bind("General", "Division Icon", true, "Show player division during ranked match");
             Harmony.PatchAll();
             Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
