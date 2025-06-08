@@ -22,7 +22,6 @@ internal class SpawnPlayerInfos_Patch
     }
 
     [HarmonyTranspiler]
-    [HarmonyDebug]
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
         CodeMatcher cm = new CodeMatcher(instructions);
